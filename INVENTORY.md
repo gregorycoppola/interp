@@ -1,58 +1,252 @@
-# Empirical Inventory
+# Attention Head Typology
 
-A flat catalog of named findings from the mechanistic
-interpretability literature, tagged by their relationship
-to the Transformers are Bayesian Networks framework.
+A meta-analysis of the distinct functional types of attention
+head found in the mechanistic interpretability literature.
+Not a list of papers — a catalog of the types themselves.
 
-BP concepts used as tags:
-- gather: the attention step that retrieves a neighbor's belief
-- update: the FFN step that computes a new belief from gathered evidence
-- factor-potential: the weights encoding a relationship between nodes
-- routing-class: a distinct inferential identity in the implicit factor graph
-- concept-node: a specific node in the implicit factor graph being active
-- multi-round: a computation requiring multiple BP rounds
-- phase-structure: the discrete emergence of routing structure during training
-- grounding: the connection between a token and a declared entity
-
-Stance toward BP account:
-- confirms: finding is predicted by or consistent with BP account
-- challenges: finding is in tension with BP account
-- open: finding is relevant but relationship to BP account is not yet clear
+The central question: how many distinct kinds of attention
+head exist, how common is each, and is the set closed or
+open?
 
 ---
 
-| Finding | Paper / Year | What was found | BP concept | Stance |
-|---|---|---|---|---|
-| Previous token head | Elhage et al. 2021 | Attention head that sharply attends to the immediately preceding token and copies it into the residual stream | gather | confirms |
-| Induction head | Olsson et al. 2022 | Attention head that finds the previous occurrence of the current token and copies the following token's value | gather | confirms |
-| Induction circuit | Olsson et al. 2022 | Two-layer circuit: previous token head feeds induction head, together implementing pattern match and copy | multi-round | confirms |
-| ICL phase transition | Olsson et al. 2022 | Induction heads emerge in a sharp discontinuous transition during training, coinciding with sudden ICL improvement | phase-structure | confirms |
-| Name mover heads | Wang et al. 2022 | Heads in the IOI circuit that copy the indirect object name to the output position | gather | confirms |
-| S-inhibition heads | Wang et al. 2022 | Heads that suppress the subject name as a candidate answer in the IOI task | update | confirms |
-| Duplicate token heads | Wang et al. 2022 | Heads that find where the subject name appeared earlier in context | gather | confirms |
-| IOI circuit | Wang et al. 2022 | Full end-to-end circuit for indirect object identification in GPT-2 Small, involving ~26 heads across multiple layers | multi-round | confirms |
-| Function vector heads | Todd et al. 2024 | Heads encoding a latent task representation rather than copying specific tokens; diffuse attention pattern | gather | open |
-| Induction-to-FV transition | Todd et al. 2024 | Many FV heads start as induction heads during training and transition to the FV mechanism | phase-structure | open |
-| FV scale dependence | Todd et al. 2024 | FV heads become more important than induction heads at larger model scales | gather | open |
-| Modular arithmetic circuit | Nanda et al. 2023 | Transformers implement modular addition via Fourier representations and interference patterns in embedding space | update | open |
-| Grokking transition | Nanda et al. 2023 | Sharp transition from memorization to generalization coinciding with formation of the modular arithmetic circuit | phase-structure | confirms |
-| Docstring circuit | Various | Circuit for completing Python docstrings by copying argument names from function signature via sharp attention | gather | confirms |
-| Greater-than circuit | Hanna et al. 2023 | Circuit implementing year comparison via specific attention heads identifying decade and unit digits | multi-round | confirms |
-| FFN as key-value memory | Geva et al. 2021 | FFN hidden units function as key-value memories: keys are input patterns, values are output distributions | factor-potential | confirms |
-| Factual association localization | Meng et al. 2022 | Factual associations are stored in specific FFN layers at specific token positions, editable via ROME | factor-potential | confirms |
-| ROME editing | Meng et al. 2022 | Directly editing FFN weights changes the model's factual beliefs in a targeted and predictable way | factor-potential | confirms |
-| Retrieval heads | Wu et al. 2024 | Specific attention heads responsible for retrieving facts across long contexts; pruning causes hallucination | gather, grounding | confirms |
-| Pruning causes hallucination | Wu et al. 2024 | Removing retrieval heads causes the model to generate unsupported content; non-retrieval head pruning does not | grounding | confirms |
-| SAE monosemantic features | Bricken et al. 2023 | SAEs trained on one-layer MLP find thousands of interpretable monosemantic features in superposition | concept-node | confirms |
-| Scaling monosemanticity | Anthropic 2024 | SAEs on Claude Sonnet find millions of interpretable features including highly specific concepts | concept-node | confirms |
-| Golden Gate Bridge feature | Anthropic 2024 | One SAE feature corresponding specifically to the Golden Gate Bridge; clamping it causes model-wide obsession | concept-node | confirms |
-| Feature clamping effect | Anthropic 2024 | Forcing one feature to maximum activation corrupts all downstream inference, routing every response through that concept | concept-node, multi-round | confirms |
-| Attribution graphs | Anthropic 2025 | Tracing how features activate other features across layers, revealing the edge structure of the implicit factor graph | factor-potential | confirms |
-| Superposition hypothesis | Elhage et al. 2022 | Models represent more features than dimensions by encoding features as non-orthogonal directions | concept-node | open |
-| Polysemanticity | Elhage et al. 2022 | Individual neurons respond to multiple unrelated concepts due to superposition | routing-class | open |
-| Universality of induction heads | Olsson et al. 2022 | Induction heads appear in every transformer language model studied regardless of size or training data | routing-class | confirms |
-| Universality of curve detectors | Olah et al. 2020 | Curve detector features appear in every vision model studied | routing-class | confirms |
-| Circuit reuse in IOI variants | Wang et al. 2022 | IOI circuit shows 92-100% component reuse across sentence variants | routing-class | confirms |
-| Attention head specialization | Various | A small number of distinct head types account for most named behaviors; long tail of less interpretable heads | routing-class | open |
-| Depth / algorithm correspondence | Sanford et al. 2024 | One-layer transformers cannot solve induction efficiently; two layers required | multi-round | confirms |
-| Two-layer induction necessity | Ekbote et al. 2025 | Two-layer transformers provably represent induction heads on any-order Markov chains; one layer cannot | multi-round | confirms |
+## Type 1: Previous Token Head
+
+What it does: attends sharply to the immediately preceding
+token position and copies its value into the current
+residual stream.
+
+How common: universal. Found in every transformer studied.
+Appears in early layers. Often the first named head type
+to emerge during training.
+
+Set status: closed. This is a fully characterized type.
+One specific behavior, one specific attention pattern,
+well understood mechanistically.
+
+BP interpretation: direct implementation of the gather
+step. One neighbor, sharp attention, copy one value.
+Closest to the formal projectDim/crossProject construction.
+
+---
+
+## Type 2: Induction Head
+
+What it does: finds the previous occurrence of the current
+token and copies the value of the token that followed it.
+Implements [A][B]...[A] -> [B].
+
+How common: universal. Found in every transformer studied
+regardless of size or architecture. Emerges in a sharp
+phase transition coinciding with in-context learning
+improvement.
+
+Set status: closed. Fully characterized. Two-layer circuit
+with previous token head as prerequisite.
+
+BP interpretation: two-round BP inference chain. Round 1:
+previous token head writes shifted identity into residual
+stream. Round 2: induction head matches against it and
+copies the following value. Minimum two layers required —
+consistent with Peirce lower bound.
+
+---
+
+## Type 3: Function Vector Head
+
+What it does: encodes a latent representation of the entire
+task being demonstrated in context. Diffuse attention
+pattern — reads across many positions rather than attending
+sharply to one.
+
+How common: present in all models studied, increasingly
+dominant at larger scales. In small models induction heads
+drive ICL; in large models FV heads drive it.
+
+Set status: partially characterized. The behavior is clear
+but the mechanism is less well understood than induction
+heads. Many FV heads start as induction heads during
+training and transition to FV behavior.
+
+BP interpretation: open. Diffuse attention over W positions
+is a weighted mixture of W neighbors' beliefs. This does
+not map cleanly onto the sharp one-neighbor gather of the
+formal BP construction. Closest candidate is loopy BP on
+a fully connected graph with attention weights as edge
+weights — but this is not yet established.
+
+---
+
+## Type 4: Name Mover Head
+
+What it does: copies a specific named entity (a person's
+name, an indirect object) from where it appears in context
+to the output position. Part of the IOI circuit.
+
+How common: specific to tasks requiring entity tracking
+and copying. Found in GPT-2 Small and other models on IOI-
+type tasks. Likely present in any model trained on text
+with named entities.
+
+Set status: closed within the IOI circuit. Whether this
+generalizes to a broader class of entity-copying heads
+is open.
+
+BP interpretation: gather step for a specific entity node.
+Retrieves the belief at the entity's position and routes
+it to where it is needed for the output. Sharp, focused,
+one entity at a time.
+
+---
+
+## Type 5: S-Inhibition Head
+
+What it does: suppresses a candidate answer by writing
+a signal that inhibits name mover heads from copying the
+subject name. Implements negative evidence in the IOI
+circuit.
+
+How common: specific to tasks requiring disambiguation
+between competing candidates. Present in IOI circuit.
+Likely a specific instance of a broader class of
+inhibition or suppression heads.
+
+Set status: open. S-inhibition is one named instance.
+Whether there is a general class of inhibition heads
+with common mechanism is not established.
+
+BP interpretation: update step that reduces belief in
+a candidate node. Passing a negative message — evidence
+against a conclusion rather than for it. The BP framework
+accommodates negative evidence naturally via the logit
+algebra; logit(p) + logit(1-q) can reduce the combined
+belief.
+
+---
+
+## Type 6: Retrieval Head
+
+What it does: retrieves specific factual information from
+distant positions in a long context. Sharp attention,
+content-addressed, copies one specific fact forward.
+Pruning causes hallucination.
+
+How common: present in models with long context ability.
+Likely a scaled-up version of the induction/name-mover
+pattern operating over longer distances.
+
+Set status: partially characterized. Identified as a
+functional class but mechanism less fully reverse
+engineered than induction heads.
+
+BP interpretation: gather step for grounding. The head
+is retrieving a specific piece of evidence from the
+context and routing it to where it is needed for
+inference. Loss of retrieval heads causes hallucination —
+consistent with the BP account of hallucination as
+grounding failure.
+
+---
+
+## Type 7: Duplicate Token Head
+
+What it does: identifies positions where the current
+token (or a semantically related token) appeared
+previously in context. Writes a signal marking that
+a repetition occurred.
+
+How common: part of the IOI circuit. Likely present in
+any model that needs to track entity repetition.
+
+Set status: closed within IOI. Broader class unclear.
+
+BP interpretation: gather step for identity matching.
+Finds where a node has appeared before and writes that
+information into the residual stream for downstream
+heads to use. A prerequisite gather before a conclusion-
+drawing update.
+
+---
+
+## Type 8: Backup Head
+
+What it does: performs the same function as a primary
+head (e.g. name mover) but fires when the primary head
+is ablated or fails. Implements redundancy.
+
+How common: found in the IOI circuit. Likely a general
+phenomenon — models appear to implement redundant
+circuits for important computations.
+
+Set status: open. Redundancy as a general phenomenon
+is documented but the full extent is not cataloged.
+
+BP interpretation: parallel BP paths to the same
+conclusion. Multiple heads voting for the same belief
+update, with the combined evidence being more robust
+than any single head. Consistent with the OR gate
+structure — multiple independent evidence sources
+combining additively in log-odds space.
+
+---
+
+## Type 9: Positional Head
+
+What it does: attends primarily based on relative or
+absolute position rather than content. Implements
+position-sensitive operations like attending to the
+first token, the last token, or a fixed offset.
+
+How common: found across many models. Position-zero
+heads (attending to the first token) are common and
+appear to implement a form of global context storage.
+
+Set status: partially characterized. Several named
+positional patterns are documented but not
+systematically cataloged.
+
+BP interpretation: gather step with positional rather
+than content-based routing. The routing key is position
+rather than content — a special case of the general
+routing where the Q·K score peaks at a specific offset
+regardless of content.
+
+---
+
+## Summary
+
+    type                    common?     closed?     BP concept
+    previous token          universal   yes         gather (sharp)
+    induction               universal   yes         gather (multi-round)
+    function vector         universal   partial     gather (diffuse) — open
+    name mover              task-specific yes        gather (entity)
+    S-inhibition            task-specific partial    update (negative)
+    retrieval               long-context partial     gather (grounding)
+    duplicate token         task-specific yes        gather (identity)
+    backup / redundant      general     open        OR (parallel evidence)
+    positional              common      partial     gather (positional)
+
+## How Many Types Are There?
+
+The set is not closed. The nine types above are the named
+and relatively well-characterized ones. The literature
+consistently finds a long tail of attention heads whose
+function is not clearly identified. Estimates suggest
+that named, well-understood head types account for a
+minority of all heads in a large model — perhaps 10-20%
+in small models, less in large ones.
+
+The 16,128 distinct AND weight patterns in Llama 3 405B
+(L * H = 126 * 128) are instantiating some distribution
+over these types. How many of each type, and what the
+full typology looks like at that scale, is an open
+empirical question.
+
+The BP framework predicts the typology should be
+organized around routing patterns — what information
+is being gathered from where. The empirical typology
+broadly confirms this: most named head types are
+distinguished by what they attend to and what they
+copy, not by how they process what they receive.
+The processing (FFN/update step) is less well
+characterized by head type.
